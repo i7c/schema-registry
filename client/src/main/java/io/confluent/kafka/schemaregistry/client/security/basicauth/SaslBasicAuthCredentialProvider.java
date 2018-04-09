@@ -44,7 +44,7 @@ public class SaslBasicAuthCredentialProvider extends AbstractBasicAuthCredential
       StringBuilder userInfoBuilder = new StringBuilder();
       if (options.containsKey("username")) {
         userInfoBuilder.append(options.get("username")).append(":").append(options.get("password"));
-        userInfo = decodeUserInfo(userInfoBuilder.toString());
+        userInfo = userInfoBuilder.toString();
       }
     }
 

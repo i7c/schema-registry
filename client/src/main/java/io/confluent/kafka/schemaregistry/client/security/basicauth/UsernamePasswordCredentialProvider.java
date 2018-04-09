@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Confluent Inc.
+ * Copyright 2018 Confluent Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,35 +17,29 @@
 package io.confluent.kafka.schemaregistry.client.security.basicauth;
 
 import io.confluent.common.config.ConfigException;
+import io.confluent.kafka.schemaregistry.client.SchemaRegistryClientConfig;
 
-import javax.xml.bind.DatatypeConverter;
-import java.io.UnsupportedEncodingException;
 import java.net.URL;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
-public abstract class AbstractBasicAuthCredentialProvider implements BasicAuthCredentialProvider {
+public class UsernamePasswordCredentialProvider extends AbstractBasicAuthCredentialProvider {
+
+  private String userInfo;
 
   @Override
   public void configure(Map<String, ?> configs) throws ConfigException {
-    // do nothing as default
+    String user = (String) configs.get(SchemaRegistryClientConfig.SCHEMA_REGISTRY_USERNAME_CONFIG);
+    String pass = (String) configs.get(SchemaRegistryClientConfig.SCHEMA_REGISTRY_PASSWORD_CONFIG);
+    if (user == null || user.isEmpty() || pass == null || pass.isEmpty()) {
+      throw new ConfigException("Username and password must be provided when "
+          + "basic.auth.credentials.source is set to USERNAME_PASSWORD");
+    }
+    userInfo = user + ":" + pass;
   }
 
   @Override
-  public String getAuthHeader(URL url) {
-    byte[] userInfoBytes = getUserInfo(url).getBytes(StandardCharsets.UTF_8);
-    return DatatypeConverter.printBase64Binary(userInfoBytes);
+  public String getUserInfo(URL url) {
+    return userInfo;
   }
 
-  static String decodeUserInfo(String userInfo) {
-    if (userInfo == null) {
-      return null;
-    }
-    try {
-      return URLDecoder.decode(userInfo, StandardCharsets.UTF_8.name());
-    } catch (UnsupportedEncodingException e) {
-      throw new AssertionError("Java Runtime does not support UTF-8 for URL decoding.");
-    }
-  }
 }

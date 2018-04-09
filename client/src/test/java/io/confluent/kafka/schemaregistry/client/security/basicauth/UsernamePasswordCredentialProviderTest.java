@@ -16,6 +16,8 @@
 
 package io.confluent.kafka.schemaregistry.client.security.basicauth;
 
+import io.confluent.common.config.ConfigException;
+import io.confluent.kafka.schemaregistry.client.SchemaRegistryClientConfig;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -24,34 +26,35 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.confluent.kafka.schemaregistry.client.SchemaRegistryClientConfig;
-
-public class UrlBasicAuthCredentialProviderTest {
+public class UsernamePasswordCredentialProviderTest {
 
   @Test
   public void testUrlUserInfo() throws MalformedURLException {
     Map<String, Object> clientConfig = new HashMap<>();
-    UrlBasicAuthCredentialProvider provider = new UrlBasicAuthCredentialProvider();
+    clientConfig.put(SchemaRegistryClientConfig.SCHEMA_REGISTRY_USERNAME_CONFIG, "user");
+    clientConfig.put(SchemaRegistryClientConfig.SCHEMA_REGISTRY_PASSWORD_CONFIG, "password");
+    UsernamePasswordCredentialProvider provider = new UsernamePasswordCredentialProvider();
     provider.configure(clientConfig);
     Assert.assertEquals("user:password",
-        provider.getUserInfo(new URL("http://user:password@localhost")));
+        provider.getUserInfo(new URL("http://localhost")));
   }
 
   @Test
   public void testSpecialCharsInUrlUserInfo() throws MalformedURLException {
     Map<String, Object> clientConfig = new HashMap<>();
-    UrlBasicAuthCredentialProvider provider = new UrlBasicAuthCredentialProvider();
+    clientConfig.put(SchemaRegistryClientConfig.SCHEMA_REGISTRY_USERNAME_CONFIG, "ü$ër");
+    clientConfig.put(SchemaRegistryClientConfig.SCHEMA_REGISTRY_PASSWORD_CONFIG, "ϱα$swo|2d");
+    UsernamePasswordCredentialProvider provider = new UsernamePasswordCredentialProvider();
     provider.configure(clientConfig);
     Assert.assertEquals("ü$ër:ϱα$swo|2d",
-        provider.getUserInfo(new URL("http://%C3%BC%24%C3%ABr:%CF%B1%CE%B1%24swo%7C2d@localhost")));
+        provider.getUserInfo(new URL("http://localhost")));
   }
 
-  @Test
-  public void testNullUserInfo() throws MalformedURLException {
+  @Test(expected = ConfigException.class)
+  public void testMissingUserNameAndPassword() {
     Map<String, Object> clientConfig = new HashMap<>();
-    UrlBasicAuthCredentialProvider provider = new UrlBasicAuthCredentialProvider();
+    UsernamePasswordCredentialProvider provider = new UsernamePasswordCredentialProvider();
     provider.configure(clientConfig);
-    Assert.assertNull(provider.getUserInfo(new URL("http://localhost")));
   }
 
 }

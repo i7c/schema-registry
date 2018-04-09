@@ -28,8 +28,8 @@ public class UserInfoCredentialProvider extends AbstractBasicAuthCredentialProvi
 
   @Override
   public void configure(Map<String, ?> configs) {
-    userInfo = decodeUserInfo((String) configs.get(SchemaRegistryClientConfig
-      .SCHEMA_REGISTRY_USER_INFO_CONFIG));
+    userInfo = decodeUserInfo(
+      (String) configs.get(SchemaRegistryClientConfig.SCHEMA_REGISTRY_USER_INFO_CONFIG));
     if (userInfo == null || userInfo.isEmpty()) {
       throw new ConfigException("UserInfo must be provided when basic.auth.credentials.source is "
         + "set to USER_INFO");
